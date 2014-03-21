@@ -21,8 +21,23 @@ public class Machine {
     public final static int USER_MEMORY_BLOCKS = 50;
     public final static int PAGE_TABLE_BLOCKS = 10;
     
-    public byte memory[] = new byte[WORD_SIZE*BLOCK_SIZE*BLOCKS];
+    public final byte memory[] = new byte[WORD_SIZE*BLOCK_SIZE*BLOCKS];
     public final byte memoryBuffer[] = new byte[WORD_SIZE];
+
+    public final byte PLR[] = new byte[WORD_SIZE];
+    public final byte AX[] = new byte[WORD_SIZE];
+    public final byte BX[] = new byte[WORD_SIZE];
+    public final byte IC[] = new byte[2];
+    public byte C;
+    
+    public byte MODE;
+    public byte CH1;
+    public byte CH2;
+    public byte CH3;
+    public byte IOI;
+    public byte PI;
+    public byte SI;
+    public byte TI;
     
     /*
      * @param args the command line arguments
@@ -36,6 +51,12 @@ public class Machine {
         for (int i=0; i<WORD_SIZE; i++) {
             memoryBuffer[i] = memory[realAddress*WORD_SIZE+i];
         }
+    }
+    
+    public int realAddress(byte x, byte y) {
+        int block = ((int)PLR[2])*10+(int)PLR[3];
+        int a2 = memory[block+(int)x*WORD_SIZE+3];
+        return a2*10+(int)y;
     }
     
     public static byte intToByte(int integer) {
@@ -54,9 +75,7 @@ public class Machine {
         }
         shuffle(memory, from, from+40, 10);
         for(int i=0; i<BLOCK_SIZE; i++) {
-            memory[i*WORD_SIZE+1] = 9;
-            memory[i*WORD_SIZE+2] = (byte)((int)(memory[from+i])/10);
-            memory[i*WORD_SIZE+3] = (byte)((int)(memory[from+i])%10);
+            memory[i*WORD_SIZE+3] = memory[from+i];
         }
     }
     
@@ -69,7 +88,7 @@ public class Machine {
     public void shuffle(byte[] memory, int from, int to, int size) {
         Random randomGenerator = new Random(System.currentTimeMillis());
         for (int i=0; i<size; i++) {
-            int random = randomGenerator.nextInt(to-from-i+1);
+            int random = randomGenerator.nextInt(to-from-i);
             System.out.println("random "+random);
             System.out.println("Swapping "+(from+i)+" "+(from+random+i));
             swap(memory, from+i, from+random+i);
@@ -95,9 +114,15 @@ public class Machine {
            System.out.println(machine.memory[from+i]);
         }
         System.out.println("WOOF");
-        for(int i=0; i<40; i++) {
-           System.out.println(machine.memory[i]);
+        for(int i=0; i<10; i++) {
+            for(int j=0; j<4; j++)
+                System.out.print(machine.memory[i*4+j]+" ");
+            System.out.println();
         }
+        System.out.println();
+        byte x = (byte)5;
+        byte y = (byte)6;
+        System.out.println(machine.realAddress(x, y));
     }
     
 }
