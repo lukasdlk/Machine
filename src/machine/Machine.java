@@ -6,8 +6,14 @@
 
 package machine;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -63,11 +69,12 @@ public class Machine {
         return (byte)integer;
     }
     
-    public void loader(String filename) throws Exception {
-        /*File file = new File(filename);
+    public void loader(String filename) throws FileNotFoundException, Exception {
+        if (filename == null)
+            filename = "";
+        File file = new File(filename);
         if (!file.canRead())
-            throw new Exception("Cannot read the file.");
-                */
+            throw new FileNotFoundException("Cannot read the file, doh.");
         int from = 4*BLOCK_SIZE*WORD_SIZE;
         System.out.println("From "+from);
         for(int i=0; i<40; i++) {
@@ -76,6 +83,23 @@ public class Machine {
         shuffle(memory, from, from+40, 10);
         for(int i=0; i<BLOCK_SIZE; i++) {
             memory[i*WORD_SIZE+3] = memory[from+i];
+        }
+        BufferedReader inputStream = null;
+        try {
+            inputStream = new BufferedReader(new FileReader(filename));
+            String l;
+            l = inputStream.readLine();
+            if(!l.startsWith("$WOW"))
+                throw new Exception("Invalid program label "+l);
+            l = inputStream.readLine();
+        }
+        catch (IOException ex) {
+            Logger.getLogger(Machine.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
         }
     }
     
@@ -105,7 +129,7 @@ public class Machine {
         }
         try {
             machine.loader(null);
-        } catch(Exception e) {
+        } catch(FileNotFoundException e) {
             System.err.println(e);
         }
         //machine.shuffle(machine.memory, from, from+40, 10);
