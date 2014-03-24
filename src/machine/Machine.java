@@ -6,6 +6,7 @@
 package machine;
 
 import java.io.BufferedReader;
+import java.io.Console;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -41,6 +42,11 @@ public class Machine {
     public byte PI;
     public byte SI;
     public byte TI;
+    
+    public char X, Y;
+    public int channelNumber;
+    public Console console = System.console();
+    public byte channelDeviceBuffer[] = new byte[40];
 
     /*
      * @param args the command line arguments
@@ -631,6 +637,8 @@ public class Machine {
     public void commandIP(char x, char y) {
         try {
             int address = realAddress(x, y);
+            X = x;
+            Y = y;
             SI = intToByte(1);
         }
         catch(ClassCastException e) {
@@ -640,6 +648,8 @@ public class Machine {
     public void commandOP(char x, char y) {
         try {
             int address = realAddress(x, y);
+            X = x;
+            Y = y;
             SI = intToByte(2);
         }
         catch(ClassCastException e) {
@@ -725,5 +735,75 @@ public class Machine {
     public void commandSEIC() {
         IC[0] = BX[2];
         IC[1] = BX[3];
+    }
+    public void StartIO() {
+        if(channelNumber==1) {
+           CH1 = intToByte(1);
+           String input = console.readLine("Plz enter somthing WOW: ");
+           int len = input.length();
+           if (len>40)
+               len = 40;
+           for(int i=0; i<len; i++) {
+               try {
+                   channelDeviceBuffer[i] = charToByte(input.charAt(i));
+               } 
+               catch (ClassCastException e) {
+                   channelDeviceBuffer[i] = charToByte('?');
+               }
+           }
+           if(len<40) {
+               channelDeviceBuffer[len] = charToByte('#');
+           }
+           int startPoz = charToInt(X)*10+charToInt(Y);
+           outerloopCH1:
+           for(int i=0; i<BLOCK_SIZE; i++) {
+               try {
+                    char x = intToChar((startPoz+i)/10);
+                    char y = intToChar((startPoz+i)%10);
+                    int address = realAddress(x, y);
+                    for(int j=0; j<4; j++) {
+                        if(channelDeviceBuffer[i*WORD_SIZE+j] == '#') {
+                            break outerloopCH1;
+                        }
+                        memory[address+j] = channelDeviceBuffer[i*WORD_SIZE+j];
+                    }
+               }
+               catch(ClassCastException e) {
+                   System.out.println("DoNotWriteAPoemException");
+                   break;
+               }
+           }
+           CH1 = intToByte(0);
+           IOI = intToByte(byteToInt(IOI)+1);
+        }
+        if(channelNumber==2) {
+           CH2 = intToByte(1);
+           int startPoz = charToInt(X)*10+charToInt(Y);
+           outerloopCH2:
+           for(int i=0; i<10; i++) {
+               try {
+                   char x = intToChar((startPoz+i)/10);
+                   char y = intToChar((startPoz+i)%10);
+                   int address = realAddress(x, y);
+                   for(int j=0; j<4; j++) {
+                        channelDeviceBuffer[i*WORD_SIZE+j] = memory[address+j];
+                        if(memory[address+j] == '#') {
+                            break outerloopCH2;
+                        }
+                    }
+               }
+               catch(ClassCastException e) {
+                   System.out.println("DoNotWriteAPoemException");
+                   break;
+               }
+           }
+           CH2 = intToByte(0);
+           IOI = intToByte(byteToInt(IOI)+2);
+        }
+        if(channelNumber==3) {
+            CH3 = intToByte(1);
+            CH3 = intToByte(0);
+            IOI = intToByte(byteToInt(IOI)+4);
+        }
     }
 }
