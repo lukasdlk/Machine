@@ -5,12 +5,8 @@
  */
 package machine;
 
-import java.io.BufferedReader;
 import java.io.Console;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,7 +57,7 @@ public class Machine {
         }
     }
 
-    public int realAddress(char x, char y) {
+    public int realAddress(char x, char y) throws CastException {
         int block = byteToInt(PLR[2]) * 10 + byteToInt(PLR[3]);
         int a2 = memory[block + charToInt(x) * WORD_SIZE + 3];
         return a2 * 10 + charToInt(y);
@@ -121,7 +117,7 @@ public class Machine {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws CastException {
         // TODO code application logic here
         Machine machine = new Machine();
         int from = 4 * BLOCK_SIZE * WORD_SIZE;
@@ -148,7 +144,7 @@ public class Machine {
             System.out.println();
         }
         System.out.println();
-        char x = 'k';
+        char x = '5';
         char y = '9';
         //System.out.println(machine.realAddress(x, y));
         machine.commandLA(x, y);
@@ -187,7 +183,7 @@ public class Machine {
     public boolean getZF() {
         return ((C & 0b00000100) > 0) ? true : false;
     }
-    public void incIC() {
+    public void incIC() throws CastException {
         int x=byteToInt(IC[0]);
         int y=byteToInt(IC[1]);
         int IC_int = x*10+y;
@@ -196,7 +192,7 @@ public class Machine {
         IC[1] = intToByte(IC_int%10);
     }
 
-    public void commandLA(char x, char y) {
+    public void commandLA(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -215,7 +211,7 @@ public class Machine {
         }
     }
 
-    public void commandLB(char x, char y) {
+    public void commandLB(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -234,7 +230,7 @@ public class Machine {
         }
     }
 
-    public void commandLAfB() {
+    public void commandLAfB() throws CastException {
         resetC();
         incIC();
         if (byteToInt(BX[0]) + byteToInt(BX[1]) > 0) {
@@ -257,7 +253,7 @@ public class Machine {
         }
     }
 
-    public void commandLBfA() {
+    public void commandLBfA() throws CastException {
         resetC();
         incIC();
         if (AX[0] + AX[1] > 0) {
@@ -280,7 +276,7 @@ public class Machine {
         }
     }
 
-    public void commandSA(char x, char y) {
+    public void commandSA(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -299,7 +295,7 @@ public class Machine {
         }
     }
 
-    public void commandSB(char x, char y) {
+    public void commandSB(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -318,7 +314,7 @@ public class Machine {
         }
     }
 
-    public void commandCOPA() {
+    public void commandCOPA() throws CastException {
         resetC();
         incIC();
         for (int i = 0; i < 4; i++) {
@@ -332,7 +328,7 @@ public class Machine {
         }
     }
 
-    public void commandCOPB() {
+    public void commandCOPB() throws CastException {
         resetC();
         incIC();
         for (int i = 0; i < 4; i++) {
@@ -346,7 +342,7 @@ public class Machine {
         }
     }
 
-    public void commandAW(char x) {
+    public void commandAW(char x) throws CastException {
         resetC();
         incIC();
         for (int i = 0; i < 3; i++) {
@@ -361,7 +357,7 @@ public class Machine {
         }
     }
 
-    public void commandAA(char x, char y) {
+    public void commandAA(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -369,7 +365,7 @@ public class Machine {
             int AX_int = wordToInt(AX, 0), memory_int = wordToInt(memory, address);
             try {
                 AX_int = addWithOverflow(AX_int, memory_int);
-            } catch (RuntimeException e) {
+            } catch (OverflowException e) {
                 setOF(true);
                 PI = intToByte(4);
             }
@@ -384,7 +380,7 @@ public class Machine {
         }
     }
 
-    public void commandAB(char x, char y) {
+    public void commandAB(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -392,7 +388,7 @@ public class Machine {
             int BX_int = wordToInt(BX, 0), memory_int = wordToInt(memory, address);
             try {
                 BX_int = addWithOverflow(BX_int, memory_int);
-            } catch (RuntimeException e) {
+            } catch (OverflowException e) {
                 setOF(true);
                 PI = intToByte(4);
             }
@@ -407,7 +403,7 @@ public class Machine {
         }
     }
 
-    public void commandBA(char x, char y) {
+    public void commandBA(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -415,7 +411,7 @@ public class Machine {
             int AX_int = wordToInt(AX, 0), memory_int = wordToInt(memory, address);
             try {
                 AX_int = subWithOverflow(AX_int, memory_int);
-            } catch (RuntimeException e) {
+            } catch (OverflowException e) {
                 setOF(true);
                 PI = intToByte(4);
             }
@@ -430,7 +426,7 @@ public class Machine {
         }
     }
 
-    public void commandBB(char x, char y) {
+    public void commandBB(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -438,7 +434,7 @@ public class Machine {
             int BX_int = wordToInt(BX, 0), memory_int = wordToInt(memory, address);
             try {
                 BX_int = subWithOverflow(BX_int, memory_int);
-            } catch (RuntimeException e) {
+            } catch (OverflowException e) {
                 setOF(true);
                 PI = intToByte(4);
             }
@@ -453,7 +449,7 @@ public class Machine {
         }
     }
 
-    public void commandMA(char x, char y) {
+    public void commandMA(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -461,7 +457,7 @@ public class Machine {
             int AX_int = wordToInt(AX, 0), memory_int = wordToInt(memory, address);
             try {
                 AX_int = mulWithOverflow(AX_int, memory_int);
-            } catch (RuntimeException e) {
+            } catch (OverflowException e) {
                 setOF(true);
                 PI = intToByte(4);
             }
@@ -476,7 +472,7 @@ public class Machine {
         }
     }
 
-    public void commandMB(char x, char y) {
+    public void commandMB(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -484,7 +480,7 @@ public class Machine {
             int BX_int = wordToInt(BX, 0), memory_int = wordToInt(memory, address);
             try {
                 BX_int = mulWithOverflow(BX_int, memory_int);
-            } catch (RuntimeException e) {
+            } catch (OverflowException e) {
                 setOF(true);
                 PI = intToByte(4);
             }
@@ -499,7 +495,7 @@ public class Machine {
         }
     }
 
-    public void commandDA(char x, char y) {
+    public void commandDA(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -523,13 +519,13 @@ public class Machine {
         }
     }
 
-    public void commandDECA(char x, char y) {
+    public void commandDECA(char x, char y) throws CastException {
         resetC();
         incIC();
         int AX_int = wordToInt(AX, 0);
         try {
             AX_int = subWithOverflow(AX_int, 1);
-        } catch (RuntimeException e) {
+        } catch (OverflowException e) {
             setOF(true);
         }
         if (AX_int == 0) {
@@ -540,13 +536,13 @@ public class Machine {
         intToWord(AX_int, AX, 0);
     }
 
-    public void commandDECB(char x, char y) {
+    public void commandDECB(char x, char y) throws CastException {
         resetC();
         incIC();
         int BX_int = wordToInt(BX, 0);
         try {
             BX_int = subWithOverflow(BX_int, 1);
-        } catch (RuntimeException e) {
+        } catch (OverflowException e) {
             setOF(true);
         }
         if (BX_int == 0) {
@@ -557,13 +553,13 @@ public class Machine {
         intToWord(BX_int, BX, 0);
     }
 
-    public void commandINCA(char x, char y) {
+    public void commandINCA(char x, char y) throws CastException {
         resetC();
         incIC();
         int AX_int = wordToInt(AX, 0);
         try {
             AX_int = addWithOverflow(AX_int, 1);
-        } catch (RuntimeException e) {
+        } catch (OverflowException e) {
             setOF(true);
         }
         if (AX_int == 0) {
@@ -574,13 +570,13 @@ public class Machine {
         intToWord(AX_int, AX, 0);
     }
 
-    public void commandINCB(char x, char y) {
+    public void commandINCB(char x, char y) throws CastException {
         resetC();
         incIC();
         int BX_int = wordToInt(BX, 0);
         try {
             BX_int = addWithOverflow(BX_int, 1);
-        } catch (RuntimeException e) {
+        } catch (OverflowException e) {
             setOF(true);
         }
         if (BX_int == 0) {
@@ -591,7 +587,7 @@ public class Machine {
         intToWord(BX_int, BX, 0);
     }
 
-    public void commandCA(char x, char y) {
+    public void commandCA(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -599,7 +595,7 @@ public class Machine {
             int AX_int = wordToInt(AX, 0), memory_int = wordToInt(memory, address);
             try {
                 AX_int = subWithOverflow(AX_int, memory_int);
-            } catch (RuntimeException e) {
+            } catch (OverflowException e) {
                 setOF(true);
                 PI = intToByte(4);
             }
@@ -613,7 +609,7 @@ public class Machine {
         }
     }
 
-    public void commandCB(char x, char y) {
+    public void commandCB(char x, char y) throws CastException {
         resetC();
         incIC();
         try {
@@ -621,7 +617,7 @@ public class Machine {
             int BX_int = wordToInt(BX, 0), memory_int = wordToInt(memory, address);
             try {
                 BX_int = subWithOverflow(BX_int, memory_int);
-            } catch (RuntimeException e) {
+            } catch (OverflowException e) {
                 setOF(true);
                 PI = intToByte(4);
             }
@@ -634,7 +630,7 @@ public class Machine {
             PI = intToByte(1);
         }
     }
-    public void commandIP(char x, char y) {
+    public void commandIP(char x, char y) throws CastException {
         try {
             int address = realAddress(x, y);
             X = x;
@@ -645,7 +641,7 @@ public class Machine {
             PI = intToByte(1);
         }
     }
-    public void commandOP(char x, char y) {
+    public void commandOP(char x, char y) throws CastException {
         try {
             int address = realAddress(x, y);
             X = x;
@@ -656,38 +652,38 @@ public class Machine {
             PI = intToByte(1);
         }
     }
-    public void commandJP(char x, char y) {
+    public void commandJP(char x, char y) throws CastException {
         IC[0] = charToByte(x);
         IC[1] = charToByte(y);
     }
 
-    public void commandJE(char x, char y) {
+    public void commandJE(char x, char y) throws CastException {
         incIC();
         if (getZF()) {
             commandJP(x, y);
         }
     }
 
-    public void commandJL(char x, char y) {
+    public void commandJL(char x, char y) throws CastException {
         incIC();
         if (!getZF() && (getSF() == getOF())) {
             commandJP(x, y);
         }
     }
 
-    public void commandJG(char x, char y) {
+    public void commandJG(char x, char y) throws CastException {
         incIC();
         if (!getZF() && (getSF() != getOF())) {
             commandJP(x, y);
         }
     }
 
-    public void commandHALT() {
+    public void commandHALT() throws CastException {
         incIC();
         SI = intToByte(3);
     }
 
-    public void commandGEC(char x) {
+    public void commandGEC(char x) throws CastException {
         incIC();
         if (x < '1' || '3' < x) {
             PI = intToByte(1);
@@ -705,7 +701,7 @@ public class Machine {
         }
     }
 
-    public void commandSEC(char x) {
+    public void commandSEC(char x) throws CastException {
         incIC();
         if (x < '1' || '3' < x) {
             PI = intToByte(1);
@@ -726,7 +722,7 @@ public class Machine {
             setZF(val);
         }
     }
-    public void commandGEIC() {
+    public void commandGEIC() throws CastException {
         intToWord(0, BX, 0);
         BX[2] = IC[0];
         BX[3] = IC[1];
@@ -736,7 +732,7 @@ public class Machine {
         IC[0] = BX[2];
         IC[1] = BX[3];
     }
-    public void StartIO() {
+    public void StartIO() throws CastException, BufferOverflowException {
         if(channelNumber==1) {
            CH1 = intToByte(1);
            String input = console.readLine("Plz enter somthing WOW: ");
@@ -769,8 +765,7 @@ public class Machine {
                     }
                }
                catch(ClassCastException e) {
-                   System.out.println("DoNotWriteAPoemException");
-                   break;
+                   throw new BufferOverflowException("Do not write a poem.");
                }
            }
            CH1 = intToByte(0);
@@ -793,8 +788,7 @@ public class Machine {
                     }
                }
                catch(ClassCastException e) {
-                   System.out.println("DoNotWriteAPoemException");
-                   break;
+                   throw new BufferOverflowException("Do not write a poem.");
                }
            }
            CH2 = intToByte(0);
