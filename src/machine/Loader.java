@@ -18,13 +18,16 @@ import static machine.Machine.BLOCK_SIZE;
 import static machine.Machine.WORD_SIZE;
 
 public class Loader {
-    byte[] memory; 
+
+    byte[] memory;
     Machine machine;
-    public Loader(Machine machine){
+
+    public Loader(Machine machine) {
         memory = machine.memory;
         this.machine = machine;
     }
-    public void loader(String filename) throws FileNotFoundException, Exception {
+
+    public void loader(String filename) throws FileNotFoundException, MachineException, IOException {
         if (filename == null) {
             filename = "";
         }
@@ -44,32 +47,33 @@ public class Loader {
         /*skaitymas*/
         BufferedReader inputStream = null;
         try {
+            System.out.println("nu");
             inputStream = new BufferedReader(new FileReader(filename));
             String l;
             byte dat[] = new byte[2];
             byte code[] = new byte[2];
             l = inputStream.readLine();
             if (!l.startsWith("$WOW")) {
-                throw new Exception("Invalid program label " + l);
+                throw new MachineException("Invalid program label " + l);
             }
             l = inputStream.readLine();
             if (!l.startsWith(".NAM")) {
-                throw new Exception("Invalid program label " + l);
+                throw new MachineException("Invalid program label " + l);
             }
             l = inputStream.readLine();
-            if ((l.startsWith(".DAT")) || (l.startsWith("$WRT"))) {
-                throw new Exception("Invalid program laber");
+            if ((!l.startsWith(".DAT")) && (!l.startsWith("$WRT"))) {
+                throw new MachineException("Invalid program laber" + l);
             }
             if (l.startsWith(".DAT")) {
-                if (l.length() > 5) {
+                if (l.length() > 6) {
                     throw new IllegalArgumentException("Invalid amount of memory required ");
                 }
                 dat = segmentAdr(l);
                 l = inputStream.readLine();
                 if (!l.startsWith("$DAT")) {
-                    throw new Exception("Invalid program label " + l);
+                    throw new MachineException("Invalid program label " + l);
                 }
-                while (!l.startsWith("$WRT") || (l.startsWith("$END"))) {
+                while (!l.startsWith("$WRT") || (!l.startsWith("$END"))) {
                     l = inputStream.readLine();
                     checkLength(l);
                     writeToMem(l, dat);
@@ -81,11 +85,15 @@ public class Loader {
                 l = inputStream.readLine();
                 checkLength(l);
                 writeToMem(l, code);
-                dat = nextAdr(code);
+                code = nextAdr(code);
             }
         } catch (IOException ex) {
-            Logger.getLogger(Machine.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
+            System.err.println(ex);
+        }
+        catch(MachineException e) {
+            System.err.println(e);
+        }
+        finally {
             if (inputStream != null) {
                 inputStream.close();
             }
@@ -101,12 +109,33 @@ public class Loader {
     }
 
     public String checkLength(String s) {
-        if (s.length() > 4) {
-            s = s.substring(0, 4);
+        try {
+            machine.C = intToByte(0);
+        } catch (CastException ex) {
+            Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if (s.length() < 4) {
-            while (s.length() < 4) {
-                s = s + " ";
+        if (s.startsWith("\"") && (s.charAt(s.length()) == ('\"'))) {
+            try {
+                machine.C = intToByte(1);
+            } catch (CastException ex) {
+                Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
+                s = s.replace("\"", "");
+            }
+        } else if (Character.isDigit(s.charAt(0))) {
+            try {
+                machine.C = intToByte(2);
+            } catch (CastException ex) {
+                Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        if (machine.C == 0) {
+            if (s.length() > 4) {
+                s = s.substring(0, 4);
+            }
+            if (s.length() < 4) {
+                while (s.length() < 4) {
+                    s = s + " ";
+                }
             }
         }
         return s;
@@ -114,13 +143,23 @@ public class Loader {
 
     public void writeToMem(String s, byte[] x) throws CastException {
         char ch[] = new char[WORD_SIZE];
-        byte by[] = new byte[WORD_SIZE];
-        int address = machine.realAddress(by[0], by[1]);
-        ch = s.toCharArray();
-        for (int i = 0; i < 4; i++) {
-            memory[address + i] = (Utils.charToByte(ch[i]));
-        }
+        int address = machine.realAddress(Utils.byteToChar(x[0]), Utils.byteToChar(x[1]));
+        if (machine.C == 1) {
+            ch = s.toCharArray();
+            for (int i = 0; i < 4; i++) {
+                memory[address + i] = (Utils.charToByte(ch[i]));
+            }
+        } else if (machine.C == 2) {
+            int b = Integer.parseInt(s);
+            intToWord(b, machine.memory, address);
+        } else if (machine.C == 0) {
+            ch = s.toCharArray();
+            for (int i = 0; i < 4; i++) {
+                memory[address + i] = (Utils.charToByte(ch[i]));
+            }
 
+        }
+    
     }
 
     public byte[] nextAdr(byte[] x) throws CastException {
@@ -149,8 +188,8 @@ public class Loader {
         Random randomGenerator = new Random(System.currentTimeMillis());
         for (int i = 0; i < size; i++) {
             int random = randomGenerator.nextInt(to - from - i);
-            System.out.println("random " + random);
-            System.out.println("Swapping " + (from + i) + " " + (from + random + i));
+            //System.out.println("random " + random);
+            //System.out.println("Swapping " + (from + i) + " " + (from + random + i));
             swap(memory, from + i, from + random + i);
         }
     }

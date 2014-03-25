@@ -186,39 +186,37 @@ public class Machine {
         Random randomGenerator = new Random(System.currentTimeMillis());
         for (int i = 0; i < size; i++) {
             int random = randomGenerator.nextInt(to - from - i);
-            System.out.println("random " + random);
-            System.out.println("Swapping " + (from + i) + " " + (from + random + i));
+            //System.out.println("random " + random);
+            //System.out.println("Swapping " + (from + i) + " " + (from + random + i));
             swap(memory, from + i, from + random + i);
         }
     }
 
-    public static void main(String[] args) throws CastException {
+    public static void main(String[] args) throws CastException{
         // TODO code application logic here
         Machine machine = new Machine();
         int from = 4 * BLOCK_SIZE * WORD_SIZE;
         for (int i = 0; i < 40; i++) {
-            System.out.println(machine.memory[from + i]);
+            //System.out.println(machine.memory[from + i]);
         }
         try {
-            machine.loader(null);
-        } catch (FileNotFoundException e) {
-            System.err.println(e);
+            machine.loader("tet.txt");
         } catch (Exception ex) {
-            Logger.getLogger(Machine.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println(ex);
         }
         //machine.shuffle(machine.memory, from, from+40, 10);
         System.out.println("WOW");
         for (int i = 0; i < 40; i++) {
-            System.out.println(machine.memory[from + i]);
+            //System.out.println(machine.memory[from + i]);
         }
-        System.out.println("WOOF");
+        //System.out.println("WOOF");
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 4; j++) {
-                System.out.print(machine.memory[i * 4 + j] + " ");
+                //System.out.print(machine.memory[i * 4 + j] + " ");
             }
-            System.out.println();
+            //System.out.println();
         }
-        System.out.println();
+        //System.out.println();
         char x = '5';
         char y = '9';
         //System.out.println(machine.realAddress(x, y));
