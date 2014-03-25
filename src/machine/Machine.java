@@ -3,10 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package machine;
 
 import java.io.Console;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,7 +22,7 @@ import static machine.Utils.*;
  * @author adomas
  */
 public class Machine {
-
+    
     public final static int WORD_SIZE = 4;
     public final static int BLOCK_SIZE = 10;
     public final static int BLOCKS = 70;
@@ -47,6 +52,76 @@ public class Machine {
     /*
      * @param args the command line arguments
      */
+    public void checkInterrupt(){
+        
+        if(byteToInt(TI) == 0){
+            System.out.println("Program has exceeded its time limit");
+            MODE = 1;
+            try {
+                restartTimer();
+            } catch (CastException ex) {
+                Logger.getLogger(Machine.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            MODE = 0;
+        }
+        
+        if (PI != 0) {
+		switch (PI) {
+		case 1:
+			System.out.println("PROGRAM INTERRUPT! Incorrect command");
+			MODE = 1;
+			stopProgram();
+		case 2:
+			System.out.println("PROGRAM INTERRUPT! Negative result");
+			MODE = 1;
+			stopProgram();
+		case 3:
+			System.out.println("PROGRAM INTERRUPT! Division by zero");
+			MODE = 1;
+			stopProgram();
+                case 4:
+			System.out.println("PROGRAM INTERRUPT! Program overflow!");
+			MODE = 1;
+			stopProgram();
+		}
+	}
+        
+        if (SI != 0) {
+		switch (SI) {
+		case 1:
+			System.out.println("PROGRAM INTERRUPT! Data input!");
+			MODE = 1;
+			CH1 = 1;
+			MODE = 0;
+			SI = 0;
+			break;
+		case 2:
+			System.out.println("PROGRAM INTERRUPT! Data output!");
+			MODE = 1;
+			CH2 = 1;
+			MODE = 0;
+			SI = 0;
+			break;
+		case 3:
+			System.out.println("PROGRAM INTERRUPT! Command halt!");
+			MODE = 1;
+			stopProgram();
+		}
+	}
+    }
+    
+    void restartTimer() throws CastException {
+
+	if (byteToInt(MODE) == 1) {
+		TI = intToByte(100);
+		System.out.println("Supervisor=> Timer restarted successfully. ");
+	}
+}
+    public void stopProgram(){
+        System.out.println("ate");
+        System.exit(0);
+    }
+
     public int getNextAvaibleBlockIndex() {
         throw new UnsupportedOperationException("Not implemented.");
     }
