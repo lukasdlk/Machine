@@ -1,0 +1,19 @@
+$WOW
+.NAM SoProgram
+.DAT 1
+$DAT
+$090
+0005
+0000
+„SUCH“
+„WOW“
+„ #“
+$WRT
+LA90
+OP92
+DECA
+CA91
+JE07
+JP02
+HALT
+$END
